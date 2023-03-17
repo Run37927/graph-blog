@@ -9,6 +9,7 @@ export const typeDefs = gql`
     type Mutation {
         postCreate(post: PostInput!): PostPayload!
         postUpdate(postId: ID!, post: PostInput!): PostPayload!
+        postDelete(postId: ID!): PostPayload!
     }
 
     # might not be the exact same as the table in postgresQL
