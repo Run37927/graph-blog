@@ -7,7 +7,7 @@ export const typeDefs = gql`
     }
 
     type Mutation {
-        postCreate(title: String!, content: String!): PostPayload
+        postCreate(title: String!, content: String!): PostPayload!
     }
 
     # might not be the exact same as the table in postgresQL
