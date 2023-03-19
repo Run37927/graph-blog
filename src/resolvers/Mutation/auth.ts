@@ -5,10 +5,19 @@ import JWT from "jsonwebtoken";
 import { JSON_SIGNATURE } from "../../keys";
 
 interface SignupArgs {
-  email: string;
+  credentials: {
+    email: string;
+    password: string;
+  };
   name: string;
   bio: string;
-  password: string;
+}
+
+interface SigninArgs {
+  credentials: {
+    email: string;
+    password: string;
+  };
 }
 
 interface UserPayload {
@@ -21,9 +30,11 @@ interface UserPayload {
 export const authResolvers = {
   signup: async (
     parent: any,
-    { email, name, password, bio }: SignupArgs,
+    { credentials, name, bio }: SignupArgs,
     { prisma }: Context
   ): Promise<UserPayload> => {
+    const { email, password } = credentials;
+
     // validate email
     const isEmail = validator.isEmail(email);
     if (!isEmail) {
@@ -74,21 +85,60 @@ export const authResolvers = {
       },
     });
 
-    const token = await JWT.sign(
-      {
+    await prisma.profile.create({
+      data: {
+        bio,
         userId: user.id,
-        email: user.email,
       },
-      JSON_SIGNATURE,
-      {
-        expiresIn: 3600000,
-      }
-    );
+    });
 
     return {
-        userErrors: [],
-        token,
+      userErrors: [],
+      token: JWT.sign(
+        {
+          userId: user.id,
+        },
+        JSON_SIGNATURE,
+        {
+          expiresIn: 3600000,
+        }
+      )
+    }
+  },
+  signin: async (
+    parent: any,
+    { credentials }: SigninArgs,
+    { prisma }: Context
+  ): Promise<UserPayload> => {
+    const { email, password } = credentials;
+
+    // find that user's email and password so we can compare if it's the same person, if so then log him in
+    const user = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) {
+      return {
+        userErrors: [{ message: "invalid credential" }],
+        token: null,
+      };
     }
 
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return {
+        userErrors: [{ message: "invalid credential" }],
+        token: null,
+      };
+    }
+
+    return {
+      userErrors: [],
+      token: JWT.sign({ userId: user.id }, JSON_SIGNATURE, {
+        expiresIn: 360000,
+      }),
+    };
   },
 };

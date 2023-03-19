@@ -10,7 +10,12 @@ export const typeDefs = gql`
         postCreate(post: PostInput!): PostPayload!
         postUpdate(postId: ID!, post: PostInput!): PostPayload!
         postDelete(postId: ID!): PostPayload!
-        signup(email: String!, name: String!, password: String!, bio: String!): AuthPayload!
+        signup(
+            credentials: CredentialsInput!,
+            name: String!,  
+            bio: String!
+        ): AuthPayload!
+        signin(credentials: CredentialsInput!): AuthPayload!
     }
 
     # might not be the exact same as the table in postgresQL
@@ -56,5 +61,10 @@ export const typeDefs = gql`
     input PostInput {
         title: String
         content: String
+    }
+
+    input CredentialsInput {
+        email: String
+        password: String!
     }
 `;
