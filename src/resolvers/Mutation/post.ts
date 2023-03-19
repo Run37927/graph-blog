@@ -19,8 +19,16 @@ export const postResolvers = {
   postCreate: async (
     parent: any,
     { post }: PostArgs,
-    { prisma }: Context
+    { prisma, userInfo }: Context
   ): Promise<PostPayloadType> => {
+    // see if you are logged in, if not you are not allowed to create a post
+    if (!userInfo) {
+      return {
+        userErrors: [{ message: "forbidden access (unauthenticated)" }],
+        post: null,
+      };
+    }
+
     const { title, content } = post;
     // validation step
     if (!title || !content) {
@@ -40,7 +48,7 @@ export const postResolvers = {
         data: {
           title,
           content,
-          authorId: 1,
+          authorId: userInfo.userId,
         },
       }),
     };
