@@ -10,6 +10,7 @@ export const typeDefs = gql`
         postCreate(post: PostInput!): PostPayload!
         postUpdate(postId: ID!, post: PostInput!): PostPayload!
         postDelete(postId: ID!): PostPayload!
+        signup(email: String!, name: String!, password: String!, bio: String!): User!
     }
 
     # might not be the exact same as the table in postgresQL
